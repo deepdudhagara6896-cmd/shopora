@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout - Shopora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body class="page-checkout">
+
+  <div id="navbar-placeholder"></div>
+
+  <div class="page-header">
+    <div class="container">
+      <h1>Checkout</h1>
+      <div class="breadcrumb">
+        <a href="../index.html">Home</a> <span>/</span>
+        <a href="cart.html">Cart</a> <span>/</span> <span>Checkout</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="checkoutContainer">
+    <div class="checkout-layout">
+      <form class="checkout-form" onsubmit="placeOrder(event)">
+        <h2>Shipping Information</h2>
+
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" name="name" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" name="email" placeholder="john@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number *</label>
+            <input type="tel" name="phone" placeholder="+1 234 567 8900" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Street Address *</label>
+          <textarea name="address" rows="2" placeholder="123 Main Street, Apt 4B" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>City *</label>
+            <input type="text" name="city" placeholder="New York" required>
+          </div>
+          <div class="form-group">
+            <label>State *</label>
+            <input type="text" name="state" placeholder="New York" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Pincode / ZIP Code *</label>
+          <input type="text" name="pincode" placeholder="10001" required>
+        </div>
+
+        <h2 style="margin-top:30px">Payment Method</h2>
+
+        <div class="payment-methods">
+          <label class="payment-method selected" onclick="selectPayment(this)">
+            <input type="radio" name="payment" value="cod" checked>
+            <span>&#128176; Cash on Delivery</span>
+          </label>
+          <label class="payment-method" onclick="selectPayment(this)">
+            <input type="radio" name="payment" value="card">
+            <span>&#128179; Credit / Debit Card</span>
+          </label>
+          <label class="payment-method" onclick="selectPayment(this)">
+            <input type="radio" name="payment" value="upi">
+            <span>&#128241; UPI / Digital Wallet</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Place Order</button>
+        <p style="text-align:center;margin-top:14px;font-size:0.82rem;color:var(--text-tertiary)">This is a demo. No real payment will be processed.</p>
+      </form>
+
+      <div>
+        <div class="order-summary-card">
+          <h2>Order Summary</h2>
+          <div id="checkoutItems"></div>
+          <div style="padding-top:14px;border-top:1px solid var(--border-color);margin-top:14px" id="checkoutSummary"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/cart.js"></script>
+  <script>
+    function selectPayment(el) {
+      document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+  </script>
+</body>
+</html>

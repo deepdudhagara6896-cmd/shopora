@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - Shopora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body class="page-product-detail">
+
+  <div id="navbar-placeholder"></div>
+
+  <div class="page-header">
+    <div class="container">
+      <div class="breadcrumb">
+        <a href="../index.html">Home</a> <span>/</span>
+        <a href="products.html">Products</a> <span>/</span>
+        <span id="breadcrumbProduct">Product</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container product-detail" id="productDetail"></div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Related Products</h2>
+      </div>
+      <div class="product-grid" id="relatedProducts"></div>
+    </div>
+  </section>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/cart.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const params = new URLSearchParams(window.location.search);
+      const productId = parseInt(params.get("id"));
+      const product = getProductById(productId);
+
+      if (!product) {
+        document.getElementById("productDetail").innerHTML =
+          '<div class="empty-state">' +
+            '<div class="empty-state-icon">&#128533;</div>' +
+            '<h2>Product Not Found</h2>' +
+            '<p>The product you\'re looking for doesn\'t exist.</p>' +
+            '<a href="products.html" class="btn btn-primary">Browse Products</a>' +
+          '</div>';
+        return;
+      }
+
+      document.title = product.name + " - Shopora";
+      document.getElementById("breadcrumbProduct").textContent = product.name;
+
+      const wishlist = JSON.parse(localStorage.getItem("shopora-wishlist") || "[]");
+      const isWishlisted = wishlist.includes(product.id);
+
+      document.getElementById("productDetail").innerHTML =
+        '<div class="product-detail-grid">' +
+          '<div class="product-detail-image">' +
+            '<img src="' + product.image + '" alt="' + product.name + '">' +
+          '</div>' +
+          '<div class="product-detail-info">' +
+            '<p class="product-card-category" style="margin-bottom:8px">' + product.category + '</p>' +
+            '<h1>' + product.name + '</h1>' +
+            '<div class="product-detail-rating">' +
+              '<span class="stars">' + getStars(product.rating) + '</span>' +
+              '<span style="font-weight:600">' + product.rating + '</span>' +
+              '<span class="rating-count">(' + product.reviews.toLocaleString() + ' reviews)</span>' +
+            '</div>' +
+            '<div class="product-detail-price">' +
+              '<span class="current-price">' + formatPrice(product.price) + '</span>' +
+              '<span class="original-price">' + formatPrice(product.oldPrice) + '</span>' +
+              '<span class="discount-tag">Save ' + product.discount + '%</span>' +
+            '</div>' +
+            '<p class="product-detail-description">' + product.description + '</p>' +
+            '<div class="quantity-selector" style="margin-bottom:16px">' +
+              '<label style="font-weight:600;margin-right:12px;font-size:0.9rem">Quantity:</label>' +
+              '<button onclick="changeQty(-1)">-</button>' +
+              '<input type="number" id="qtyInput" value="1" min="1" max="99">' +
+              '<button onclick="changeQty(1)">+</button>' +
+            '</div>' +
+            '<div class="product-detail-buttons">' +
+              '<button class="btn btn-primary btn-lg" onclick="addDetailToCart(' + product.id + ')">&#128722; Add to Cart</button>' +
+              '<button class="btn btn-secondary btn-lg" onclick="buyNow(' + product.id + ')">Buy Now</button>' +
+              '<button class="btn btn-outline btn-lg" onclick="toggleWishlistDetail(' + product.id + ', this)" id="wishlistBtn" style="' + (isWishlisted ? 'background:var(--danger);color:white;border-color:var(--danger)' : '') + '">' +
+                (isWishlisted ? '&#9829; Wishlisted' : '&#9829; Wishlist') +
+              '</button>' +
+            '</div>' +
+            '<div class="product-detail-meta">' +
+              '<p><span>Availability:</span> In Stock</p>' +
+              '<p><span>Shipping:</span> Free shipping on orders over $50</p>' +
+              '<p><span>Returns:</span> 30-day easy returns</p>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
+      // Related products: same category, excluding current
+      const related = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+      const relatedEl = document.getElementById("relatedProducts");
+      if (relatedEl && related.length > 0) {
+        relatedEl.innerHTML = related.map(p => buildProductCard(p)).join("");
+      } else if (relatedEl) {
+        relatedEl.innerHTML = PRODUCTS.filter(p => p.id !== product.id).slice(0, 4).map(p => buildProductCard(p)).join("");
+      }
+    });
+
+    function changeQty(delta) {
+      const input = document.getElementById("qtyInput");
+      let val = parseInt(input.value) + delta;
+      if (val < 1) val = 1;
+      if (val > 99) val = 99;
+      input.value = val;
+    }
+
+    function addDetailToCart(productId) {
+      const qty = parseInt(document.getElementById("qtyInput").value) || 1;
+      addToCartById(productId, qty);
+    }
+
+    function buyNow(productId) {
+      const qty = parseInt(document.getElementById("qtyInput").value) || 1;
+      addToCartById(productId, qty);
+      window.location.href = "cart.html";
+    }
+
+    function toggleWishlistDetail(productId, btn) {
+      const wishlist = JSON.parse(localStorage.getItem("shopora-wishlist") || "[]");
+      const index = wishlist.indexOf(productId);
+      if (index > -1) {
+        wishlist.splice(index, 1);
+        btn.innerHTML = "&#9829; Wishlist";
+        btn.style.background = "";
+        btn.style.color = "";
+        btn.style.borderColor = "";
+        showToast("Removed from wishlist", "error");
+      } else {
+        wishlist.push(productId);
+        btn.innerHTML = "&#9829; Wishlisted";
+        btn.style.background = "var(--danger)";
+        btn.style.color = "white";
+        btn.style.borderColor = "var(--danger)";
+        showToast("Added to wishlist!", "success");
+      }
+      localStorage.setItem("shopora-wishlist", JSON.stringify(wishlist));
+      updateWishlistBadges();
+    }
+  </script>
+</body>
+</html>

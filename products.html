@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products - Shopora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body class="page-products">
+
+  <div id="navbar-placeholder"></div>
+
+  <div class="page-header">
+    <div class="container">
+      <h1 id="pageTitle">All Products</h1>
+      <div class="breadcrumb">
+        <a href="../index.html">Home</a> <span>/</span> <span id="breadcrumbCurrent">Products</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <button class="filter-toggle-btn" onclick="toggleSidebar()">&#9776; Filters</button>
+
+    <div class="products-layout">
+      <!-- Sidebar Filters -->
+      <aside class="products-sidebar" id="productsSidebar">
+        <div class="filter-group">
+          <h3>Categories</h3>
+          <label><input type="radio" name="category" value="all" checked onchange="applyFilters()"> All Categories</label>
+          <label><input type="radio" name="category" value="Electronics" onchange="applyFilters()"> Electronics</label>
+          <label><input type="radio" name="category" value="Fashion" onchange="applyFilters()"> Fashion</label>
+          <label><input type="radio" name="category" value="Shoes" onchange="applyFilters()"> Shoes</label>
+          <label><input type="radio" name="category" value="Accessories" onchange="applyFilters()"> Accessories</label>
+          <label><input type="radio" name="category" value="Home" onchange="applyFilters()"> Home</label>
+          <label><input type="radio" name="category" value="Beauty" onchange="applyFilters()"> Beauty</label>
+        </div>
+
+        <div class="filter-group">
+          <h3>Price Range</h3>
+          <label><input type="radio" name="price" value="all" checked onchange="applyFilters()"> All Prices</label>
+          <label><input type="radio" name="price" value="0-25" onchange="applyFilters()"> Under $25</label>
+          <label><input type="radio" name="price" value="25-50" onchange="applyFilters()"> $25 - $50</label>
+          <label><input type="radio" name="price" value="50-100" onchange="applyFilters()"> $50 - $100</label>
+          <label><input type="radio" name="price" value="100-999" onchange="applyFilters()"> $100+</label>
+        </div>
+
+        <div class="filter-group">
+          <h3>Rating</h3>
+          <label><input type="radio" name="rating" value="all" checked onchange="applyFilters()"> All Ratings</label>
+          <label><input type="radio" name="rating" value="4.5" onchange="applyFilters()"> 4.5 & Up</label>
+          <label><input type="radio" name="rating" value="4" onchange="applyFilters()"> 4.0 & Up</label>
+          <label><input type="radio" name="rating" value="3.5" onchange="applyFilters()"> 3.5 & Up</label>
+        </div>
+      </aside>
+
+      <!-- Overlay for sidebar -->
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+      <!-- Main Content -->
+      <div class="products-main">
+        <div class="products-topbar">
+          <span class="results" id="resultCount">Showing 24 products</span>
+          <select id="sortSelect" onchange="applyFilters()">
+            <option value="default">Sort by: Featured</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Highest Rated</option>
+            <option value="reviews">Most Reviews</option>
+            <option value="discount">Biggest Discount</option>
+          </select>
+        </div>
+        <div class="product-grid" id="productsGrid"></div>
+        <div class="no-results" id="noResults" style="display:none">
+          <p>No products found matching your criteria. Try adjusting your filters.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-placeholder"></div>
+
+  <script src="../js/products.js"></script>
+  <script src="../js/app.js"></script>
+  <script src="../js/cart.js"></script>
+  <script>
+    // Read URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get("search") || "";
+    const categoryParam = urlParams.get("category") || "";
+
+    // Set initial filter from URL
+    if (categoryParam) {
+      const radio = document.querySelector('input[name="category"][value="' + categoryParam + '"]');
+      if (radio) radio.checked = true;
+    }
+
+    // Update page title
+    if (searchQuery) {
+      document.getElementById("pageTitle").textContent = 'Search: "' + searchQuery + '"';
+      document.getElementById("breadcrumbCurrent").textContent = 'Search: ' + searchQuery;
+      document.title = 'Search "' + searchQuery + '" - Shopora';
+    } else if (categoryParam) {
+      document.getElementById("pageTitle").textContent = categoryParam;
+      document.getElementById("breadcrumbCurrent").textContent = categoryParam;
+      document.title = categoryParam + ' - Shopora';
+    }
+
+    function applyFilters() {
+      const category = document.querySelector('input[name="category"]:checked').value;
+      const priceRange = document.querySelector('input[name="price"]:checked').value;
+      const minRating = parseFloat(document.querySelector('input[name="rating"]:checked').value);
+      const sortBy = document.getElementById("sortSelect").value;
+
+      let filtered = [...PRODUCTS];
+
+      // Search filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+        );
+      }
+
+      // Category filter
+      if (category !== "all") {
+        filtered = filtered.filter(p => p.category === category);
+      }
+
+      // Price filter
+      if (priceRange !== "all") {
+        const [min, max] = priceRange.split("-").map(Number);
+        filtered = filtered.filter(p => p.price >= min && p.price <= max);
+      }
+
+      // Rating filter
+      if (!isNaN(minRating)) {
+        filtered = filtered.filter(p => p.rating >= minRating);
+      }
+
+      // Sort
+      switch (sortBy) {
+        case "price-low":
+          filtered.sort((a, b) => a.price - b.price);
+          break;
+        case "price-high":
+          filtered.sort((a, b) => b.price - a.price);
+          break;
+        case "rating":
+          filtered.sort((a, b) => b.rating - a.rating);
+          break;
+        case "reviews":
+          filtered.sort((a, b) => b.reviews - a.reviews);
+          break;
+        case "discount":
+          filtered.sort((a, b) => b.discount - a.discount);
+          break;
+      }
+
+      const grid = document.getElementById("productsGrid");
+      const noResults = document.getElementById("noResults");
+      const count = document.getElementById("resultCount");
+
+      if (filtered.length === 0) {
+        grid.innerHTML = "";
+        noResults.style.display = "block";
+        count.textContent = "No products found";
+      } else {
+        noResults.style.display = "none";
+        grid.innerHTML = filtered.map(p => buildProductCard(p)).join("");
+        count.textContent = "Showing " + filtered.length + " product" + (filtered.length !== 1 ? "s" : "");
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("productsSidebar");
+      const overlay = document.getElementById("sidebarOverlay");
+      sidebar.classList.toggle("active");
+      overlay.classList.toggle("active");
+    }
+
+    // Initial render
+    applyFilters();
+  </script>
+</body>
+</html>
